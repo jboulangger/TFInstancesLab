@@ -1,0 +1,38 @@
+---
+  - name: Playbook estructura de ficheros
+    hosts: localhost
+    vars:
+      modules: 
+        - vpc
+        - instance
+      structure_module:
+        - main.tf
+        - variables.tf
+        - outputs.tf
+        - README.md
+      file_principal:
+        - provider.tf
+    tasks: 
+      - name: Concatenando para el la ruta principal
+        set_fact:
+          structure_principal: "{{ file_principal + structure_module }}"
+      
+      - name: Creación en la ruta principal
+        file:
+          path: "{{ playbook_dir }}/{{ item }}"
+          state: touch
+        loop: "{{ structure_principal }}"
+      
+      - name: Creación de carpetas en la ruta principal
+        file: 
+          path: "{{ playbook_dir }}/{{ item }}"
+          state: directory
+        loop: "{{ modules }}"
+
+      - name: Creación de archivos dentro de las carpetas
+        file:
+          path: "{{ playbook_dir }}/{{ item.0 }}/{{ item.1 }}"
+          state: touch
+        loop: "{{ modules | product(structure_module) }}"
+        loop_control:
+          loop_var: item
